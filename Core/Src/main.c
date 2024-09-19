@@ -29,7 +29,7 @@
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
-#define DEBOUNCE_DELAY 50  // 50ms debounce time
+#define DEBOUNCE_DELAY 10  // 50ms debounce time
 
 /* USER CODE BEGIN PD */
 
@@ -47,8 +47,8 @@ I2C_HandleTypeDef hi2c1;
 
 // Account data
 const char* account_names[] = {"Amazon", "Gmail", "Spotify"};
-const char* usernames[] = {"amazon_user", "gmail_user", "spotify_user"};
-const char* passwords[] = {"amazon_pass", "gmail_pass", "spotify_pass"};
+const char* usernames[] = {"tuf50288@temple.edu", "", ""};
+const char* passwords[] = {"#*FBNhf3478*@#hfhfh*#845h3h3GKJ$#3$58fha", "", ""};
 int current_selection = 0;  // Tracks the currently selected item
 
 /* USER CODE END PV */
@@ -100,19 +100,46 @@ void navigate_menu(int direction) {
 
 /* Display account details when selected */
 void show_account_details(int index) {
-    ssd1306_Fill(Black);  // Clear screen
-    ssd1306_SetCursor(2, 0);
-    ssd1306_WriteString("User:", Font_11x18, White);
-    ssd1306_SetCursor(2, 20);
-    ssd1306_WriteString(usernames[index], Font_11x18, White);
+    ssd1306_Fill(Black);  // Clear the screen
 
-    ssd1306_SetCursor(2, 40);
-    ssd1306_WriteString("Pass:", Font_11x18, White);
-    ssd1306_SetCursor(2, 60);
-    ssd1306_WriteString(passwords[index], Font_11x18, White);
+    int x_position = 2;   // Left-align text
+    int max_chars_per_line = 21;  // 128 / 6 = 21 characters per line for Font_6x8
+
+    // --- Display Username ---
+    ssd1306_SetCursor(x_position, 8);  // First line for username
+    if (strlen(usernames[index]) > max_chars_per_line) {
+        // Split the username into two lines if it's too long
+        char first_part[max_chars_per_line + 1];
+        strncpy(first_part, usernames[index], max_chars_per_line);  // Copy the first part
+        first_part[max_chars_per_line] = '\0';
+        ssd1306_WriteString(first_part, Font_6x8, White);  // Write first part
+
+        ssd1306_SetCursor(x_position, 16);  // Move to the next line for the rest
+        ssd1306_WriteString(usernames[index] + max_chars_per_line, Font_6x8, White);
+    } else {
+        // Username fits on one line
+        ssd1306_WriteString(usernames[index], Font_6x8, White);
+    }
+
+    // --- Display Password ---
+    ssd1306_SetCursor(x_position, 32);  // Leave an empty line before the password
+    if (strlen(passwords[index]) > max_chars_per_line) {
+        // Split the password into two lines if it's too long
+        char first_part[max_chars_per_line + 1];
+        strncpy(first_part, passwords[index], max_chars_per_line);  // Copy the first part
+        first_part[max_chars_per_line] = '\0';
+        ssd1306_WriteString(first_part, Font_6x8, White);  // Write first part
+
+        ssd1306_SetCursor(x_position, 40);  // Move to the next line for the rest
+        ssd1306_WriteString(passwords[index] + max_chars_per_line, Font_6x8, White);
+    } else {
+        // Password fits on one line
+        ssd1306_WriteString(passwords[index], Font_6x8, White);
+    }
 
     ssd1306_UpdateScreen();  // Send buffer to display
 }
+
 
 /* Debounce button presses */
 uint8_t debounce_button(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin) {
