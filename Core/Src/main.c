@@ -1,18 +1,3 @@
-/* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  ******************************************************************************
-  */
-/* USER CODE END Header */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "ssd1306.h"  // Include your SSD1306 driver
@@ -29,7 +14,7 @@
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
-#define DEBOUNCE_DELAY 10  // 50ms debounce time
+#define DEBOUNCE_DELAY 50  // 50ms debounce time
 
 /* USER CODE BEGIN PD */
 
@@ -51,6 +36,20 @@ const char* usernames[] = {"tuf50288@temple.edu", "", ""};
 const char* passwords[] = {"#*FBNhf3478*@#hfhfh*#845h3h3GKJ$#3$58fha", "", ""};
 int current_selection = 0;  // Tracks the currently selected item
 
+// Define screen states
+typedef enum {
+    STATE_LOGIN,     // Login screen
+    STATE_MENU,      // Showing the list of accounts
+    STATE_DETAILS    // Showing the username and password
+} ScreenState;
+
+ScreenState current_state = STATE_LOGIN;  // Start in the login state
+
+// PIN variables
+const int correct_pin[] = {1, 2, 3};
+int pin_input[3] = {0, 0, 0};
+int pin_index = 0;  // Index of current digit being set
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,6 +61,8 @@ void navigate_menu(int direction);
 void check_buttons(void);
 void show_account_details(int index);
 uint8_t debounce_button(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
+void display_login_screen(void);
+void handle_login_buttons(void);
 
 /* USER CODE BEGIN PFP */
 
@@ -96,6 +97,19 @@ void navigate_menu(int direction) {
         current_selection = 0;  // Wrap to top
     }
     display_menu();  // Update the display
+}
+
+/* Toggle between menu and account details */
+void handle_enter_button() {
+    if (current_state == STATE_MENU) {
+        // Switch to showing account details
+        show_account_details(current_selection);
+        current_state = STATE_DETAILS;
+    } else if (current_state == STATE_DETAILS) {
+        // Switch back to the menu
+        display_menu();
+        current_state = STATE_MENU;
+    }
 }
 
 /* Display account details when selected */
@@ -140,6 +154,20 @@ void show_account_details(int index) {
     ssd1306_UpdateScreen();  // Send buffer to display
 }
 
+/* Check the state of buttons and navigate the menu */
+void check_buttons() {
+    if (debounce_button(GPIOA, GPIO_PIN_4)) {
+        if (current_state == STATE_MENU) {
+            navigate_menu(1);  // Move up in the list
+        }
+    } else if (debounce_button(GPIOA, GPIO_PIN_5)) {
+        if (current_state == STATE_MENU) {
+            navigate_menu(-1);   // Move down in the list
+        }
+    } else if (debounce_button(GPIOA, GPIO_PIN_6)) {
+        handle_enter_button();  // Toggle between the menu and account details
+    }
+}
 
 /* Debounce button presses */
 uint8_t debounce_button(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin) {
@@ -152,14 +180,51 @@ uint8_t debounce_button(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin) {
     return 0;  // Button is not pressed
 }
 
-/* Check the state of buttons and navigate the menu */
-void check_buttons() {
+/* Display the login screen */
+void display_login_screen() {
+    ssd1306_Fill(Black);  // Clear the screen
+
+    ssd1306_SetCursor(2, 0);
+    ssd1306_WriteString("Enter PIN:", Font_11x18, White);
+
+    // Display the PIN digits
+    char pin_display[10];
+    sprintf(pin_display, "%d %d %d", pin_input[0], pin_input[1], pin_input[2]);
+
+    ssd1306_SetCursor(2, 24);
+    ssd1306_WriteString(pin_display, Font_11x18, White);
+
+    // Underline the current digit
+    ssd1306_SetCursor(2 + pin_index * 24, 44);  // Adjust position based on digit index
+    ssd1306_WriteString("^", Font_11x18, White);
+
+    ssd1306_UpdateScreen();  // Send buffer to display
+}
+
+/* Handle button inputs on the login screen */
+void handle_login_buttons() {
     if (debounce_button(GPIOA, GPIO_PIN_4)) {
-        navigate_menu(-1);  // Move up in the list
+        // Increase current digit
+        pin_input[pin_index] = (pin_input[pin_index] + 1) % 10;  // Digits 0-9
+        display_login_screen();
     } else if (debounce_button(GPIOA, GPIO_PIN_5)) {
-        navigate_menu(1);   // Move down in the list
+        // Move to next digit
+        pin_index = (pin_index + 1) % 3;  // Wrap around 0-2
+        display_login_screen();
     } else if (debounce_button(GPIOA, GPIO_PIN_6)) {
-        show_account_details(current_selection);  // Show details for the selected account
+        // Confirm PIN
+        if (pin_input[0] == correct_pin[0] && pin_input[1] == correct_pin[1] && pin_input[2] == correct_pin[2]) {
+            // Correct PIN
+            current_state = STATE_MENU;
+            display_menu();
+        } else {
+            // Incorrect PIN, reset input
+            pin_input[0] = 0;
+            pin_input[1] = 0;
+            pin_input[2] = 0;
+            pin_index = 0;
+            display_login_screen();
+        }
     }
 }
 
@@ -196,14 +261,18 @@ int main(void) {
 
   /* USER CODE BEGIN 2 */
   ssd1306_Init();  // Initialize the OLED display
-  display_menu();  // Show the initial menu
+  display_login_screen();  // Show the login screen
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
-    check_buttons();  // Poll buttons for input
+    if (current_state == STATE_LOGIN) {
+        handle_login_buttons();  // Handle login input
+    } else {
+        check_buttons();  // Poll buttons for menu navigation
+    }
     HAL_Delay(200);   // Add delay to avoid button bouncing
     /* USER CODE END WHILE */
 
