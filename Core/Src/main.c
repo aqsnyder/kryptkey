@@ -30,7 +30,7 @@
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
-#define DEBOUNCE_DELAY 10  // 50ms debounce time
+#define DEBOUNCE_DELAY 10  // 10ms debounce time
 
 /* USER CODE BEGIN PD */
 
@@ -47,19 +47,29 @@ I2C_HandleTypeDef hi2c1;
 /* USER CODE BEGIN PV */
 
 // Account data
-const char* account_names[] = {"Amazon", "Gmail", "Spotify"};
+const char* account_names[] = {"amazon", "gmail", "spotify", "nord_vpn", "invictus_outlook", "tu_portal", "github", "wix"};
 const char* usernames[] = {
-    "verylongemailaddress_amazon@example.com",
-    "anotherlongemailaddress_gmail@example.com",
-    "user_spotify@example.com"
+    "tuf50288@temple.edu",
+    "aaron.q.snyder@gmail.com",
+    "aaron.snyder@temple.edu",
+    "tuf50288@temple.edu",
+    "aaron@isiwireless.com",
+    "tuf50288@temple.edu",
+	"aaron.q.snyder@gmail.com",
+	"aaron.snyder@temple.edu"
 };
 int current_selection = 0;  // Tracks the currently selected item
 
 // Encrypted passwords
 uint8_t encrypted_passwords[][16] = {
-    { 0x18, 0x42, 0x40, 0x49, 0x2c, 0x71, 0xf5, 0x02, 0xf2, 0x4b, 0x17, 0x90, 0x79, 0xfa, 0xd6, 0x0b },
-    { 0xf1, 0xc6, 0x0a, 0x1d, 0x56, 0x61, 0xdb, 0xf1, 0x7f, 0xc8, 0xa6, 0xb0, 0x3f, 0xdd, 0x8d, 0x76 },
-    { 0x78, 0x91, 0xad, 0xa7, 0x2a, 0x43, 0x71, 0xa6, 0x9b, 0x71, 0xc9, 0x60, 0x1c, 0x0b, 0xe1, 0xa3 }
+		{0x18, 0x42, 0x40, 0x49, 0x2c, 0x71, 0xf5, 0x02, 0xf2, 0x4b, 0x17, 0x90, 0x79, 0xfa, 0xd6, 0x0b},
+		{0xf1, 0xc6, 0x0a, 0x1d, 0x56, 0x61, 0xdb, 0xf1, 0x7f, 0xc8, 0xa6, 0xb0, 0x3f, 0xdd, 0x8d, 0x76},
+		{0x78, 0x91, 0xad, 0xa7, 0x2a, 0x43, 0x71, 0xa6, 0x9b, 0x71, 0xc9, 0x60, 0x1c, 0x0b, 0xe1, 0xa3},
+		{0x34, 0xe9, 0xa3, 0x5a, 0xa2, 0xa1, 0x47, 0x34, 0x6d, 0x15, 0xee, 0x7e, 0xb5, 0xf5, 0x5d, 0xa6},
+		{0x03, 0x72, 0xeb, 0x44, 0x3d, 0x56, 0x44, 0xd2, 0x10, 0xff, 0xaa, 0xaf, 0xe8, 0x02, 0x74, 0xf0},
+		{0x0d, 0x0e, 0x6a, 0x20, 0x95, 0x6f, 0x23, 0x96, 0x08, 0xcb, 0x9e, 0x09, 0xe5, 0xb2, 0xe0, 0x94},
+		{0x1d, 0x98, 0xf2, 0x0c, 0x1e, 0x48, 0xb2, 0x51, 0xc9, 0x1f, 0xa3, 0x2c, 0xbb, 0x25, 0x40, 0x22},
+		{0x5d, 0xff, 0x06, 0xad, 0x67, 0xef, 0x4a, 0x4e, 0xc7, 0xdf, 0x27, 0x84, 0xfa, 0x8e, 0x32, 0x82}
 };
 
 // Encrypted password lengths
@@ -100,17 +110,40 @@ void derive_key_from_pin(int pin_digits[], uint8_t key[16]);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-/* Display the menu of account names */
+/* Display the menu of account names with scrolling */
 void display_menu() {
     ssd1306_Fill(Black);  // Clear the screen
 
-    for (int i = 0; i < sizeof(account_names) / sizeof(account_names[0]); i++) {
+    int menu_size = sizeof(account_names) / sizeof(account_names[0]);
+    int window_size = 4;  // Number of items that can fit on the screen
+    int half_window = window_size / 2;
+    int start_index;
+
+    // Adjust start_index based on current_selection to ensure it is always visible
+    if (menu_size <= window_size) {
+        // All items fit on the screen
+        start_index = 0;
+        window_size = menu_size;  // Adjust window_size if fewer items
+    } else if (current_selection <= half_window) {
+        // Near the top of the list
+        start_index = 0;
+    } else if (current_selection >= menu_size - half_window - 1) {
+        // Near the bottom of the list
+        start_index = menu_size - window_size;
+    } else {
+        // Middle of the list
+        start_index = current_selection - half_window;
+    }
+
+    // Display the menu items within the window
+    for (int i = 0; i < window_size; i++) {
+        int item_index = start_index + i;
         ssd1306_SetCursor(2, i * 16);  // Set Y position for each line
 
-        if (i == current_selection) {
-            ssd1306_WriteString(account_names[i], Font_11x18, White);  // Highlight selected item
+        if (item_index == current_selection) {
+            ssd1306_WriteString(account_names[item_index], Font_11x18, White);  // Highlight selected item
         } else {
-            ssd1306_WriteString(account_names[i], Font_7x10, White);
+            ssd1306_WriteString(account_names[item_index], Font_7x10, White);
         }
     }
     ssd1306_UpdateScreen();  // Send buffer to display
@@ -147,7 +180,7 @@ void show_account_details(int index) {
     derive_key_from_pin(pin_input, key);
 
     size_t encrypted_length = encrypted_password_lengths[index];
-    uint8_t decrypted_password[128];  // Adjust size as needed
+    uint8_t decrypted_password[128];
     memcpy(decrypted_password, encrypted_passwords[index], encrypted_length);
 
     struct AES_ctx ctx;
