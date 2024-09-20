@@ -30,7 +30,9 @@
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
-#define DEBOUNCE_DELAY 10  // 10ms debounce time
+#define DEBOUNCE_DELAY 20  // 20ms debounce time
+#define ENCRYPTED_PASSWORD_LENGTH 16  // Define at the top of your code  // All passwords are 16 bytes
+
 
 /* USER CODE BEGIN PD */
 
@@ -71,9 +73,6 @@ uint8_t encrypted_passwords[][16] = {
 		{0x1d, 0x98, 0xf2, 0x0c, 0x1e, 0x48, 0xb2, 0x51, 0xc9, 0x1f, 0xa3, 0x2c, 0xbb, 0x25, 0x40, 0x22},
 		{0x5d, 0xff, 0x06, 0xad, 0x67, 0xef, 0x4a, 0x4e, 0xc7, 0xdf, 0x27, 0x84, 0xfa, 0x8e, 0x32, 0x82}
 };
-
-// Encrypted password lengths
-size_t encrypted_password_lengths[] = {16, 16, 16};  // All passwords are 16 bytes
 
 // Define screen states
 typedef enum {
@@ -179,7 +178,7 @@ void show_account_details(int index) {
     uint8_t key[16];
     derive_key_from_pin(pin_input, key);
 
-    size_t encrypted_length = encrypted_password_lengths[index];
+    size_t encrypted_length = ENCRYPTED_PASSWORD_LENGTH;
     uint8_t decrypted_password[128];
     memcpy(decrypted_password, encrypted_passwords[index], encrypted_length);
 
@@ -322,7 +321,7 @@ void handle_login_buttons() {
         derive_key_from_pin(pin_input, key);
 
         // Attempt to decrypt the first password
-        size_t encrypted_length = encrypted_password_lengths[0];
+        size_t encrypted_length = ENCRYPTED_PASSWORD_LENGTH;
         uint8_t decrypted_password[64];  // Adjust size as needed
         memcpy(decrypted_password, encrypted_passwords[0], encrypted_length);
 
