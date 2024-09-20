@@ -30,7 +30,7 @@
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
-#define DEBOUNCE_DELAY 50  // 50ms debounce time
+#define DEBOUNCE_DELAY 10  // 50ms debounce time
 
 /* USER CODE BEGIN PD */
 
@@ -373,7 +373,7 @@ int main(void) {
     } else {
         check_buttons();  // Poll buttons for menu navigation
     }
-    HAL_Delay(200);   // Add delay to avoid button bouncing
+    HAL_Delay(5);   // Add delay to avoid button bouncing
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
