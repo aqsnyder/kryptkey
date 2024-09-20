@@ -1,7 +1,23 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body with text wrapping
+  ******************************************************************************
+  * @attention
+  *
+  * This code modifies the show_account_details() function to wrap long usernames
+  * and passwords to the next line if they are too long for the display.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "ssd1306.h"  // Include your SSD1306 driver
+#include "ssd1306.h"      // Include your SSD1306 driver
 #include "ssd1306_fonts.h"  // Include the fonts you need
+#include "aes.h"          // Include TinyAES library
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -32,9 +48,22 @@ I2C_HandleTypeDef hi2c1;
 
 // Account data
 const char* account_names[] = {"Amazon", "Gmail", "Spotify"};
-const char* usernames[] = {"tuf50288@temple.edu", "", ""};
-const char* passwords[] = {"#*FBNhf3478*@#hfhfh*#845h3h3GKJ$#3$58fha", "", ""};
+const char* usernames[] = {
+    "verylongemailaddress_amazon@example.com",
+    "anotherlongemailaddress_gmail@example.com",
+    "user_spotify@example.com"
+};
 int current_selection = 0;  // Tracks the currently selected item
+
+// Encrypted passwords
+uint8_t encrypted_passwords[][16] = {
+    { 0x18, 0x42, 0x40, 0x49, 0x2c, 0x71, 0xf5, 0x02, 0xf2, 0x4b, 0x17, 0x90, 0x79, 0xfa, 0xd6, 0x0b },
+    { 0xf1, 0xc6, 0x0a, 0x1d, 0x56, 0x61, 0xdb, 0xf1, 0x7f, 0xc8, 0xa6, 0xb0, 0x3f, 0xdd, 0x8d, 0x76 },
+    { 0x78, 0x91, 0xad, 0xa7, 0x2a, 0x43, 0x71, 0xa6, 0x9b, 0x71, 0xc9, 0x60, 0x1c, 0x0b, 0xe1, 0xa3 }
+};
+
+// Encrypted password lengths
+size_t encrypted_password_lengths[] = {16, 16, 16};  // All passwords are 16 bytes
 
 // Define screen states
 typedef enum {
@@ -46,7 +75,6 @@ typedef enum {
 ScreenState current_state = STATE_LOGIN;  // Start in the login state
 
 // PIN variables
-const int correct_pin[] = {1, 2, 3};
 int pin_input[3] = {0, 0, 0};
 int pin_index = 0;  // Index of current digit being set
 
@@ -63,6 +91,7 @@ void show_account_details(int index);
 uint8_t debounce_button(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
 void display_login_screen(void);
 void handle_login_buttons(void);
+void derive_key_from_pin(int pin_digits[], uint8_t key[16]);
 
 /* USER CODE BEGIN PFP */
 
@@ -114,44 +143,86 @@ void handle_enter_button() {
 
 /* Display account details when selected */
 void show_account_details(int index) {
-    ssd1306_Fill(Black);  // Clear the screen
+    uint8_t key[16];
+    derive_key_from_pin(pin_input, key);
 
-    int x_position = 2;   // Left-align text
-    int max_chars_per_line = 21;  // 128 / 6 = 21 characters per line for Font_6x8
+    size_t encrypted_length = encrypted_password_lengths[index];
+    uint8_t decrypted_password[128];  // Adjust size as needed
+    memcpy(decrypted_password, encrypted_passwords[index], encrypted_length);
 
-    // --- Display Username ---
-    ssd1306_SetCursor(x_position, 8);  // First line for username
-    if (strlen(usernames[index]) > max_chars_per_line) {
-        // Split the username into two lines if it's too long
-        char first_part[max_chars_per_line + 1];
-        strncpy(first_part, usernames[index], max_chars_per_line);  // Copy the first part
-        first_part[max_chars_per_line] = '\0';
-        ssd1306_WriteString(first_part, Font_6x8, White);  // Write first part
+    struct AES_ctx ctx;
+    AES_init_ctx(&ctx, key);
 
-        ssd1306_SetCursor(x_position, 16);  // Move to the next line for the rest
-        ssd1306_WriteString(usernames[index] + max_chars_per_line, Font_6x8, White);
-    } else {
-        // Username fits on one line
-        ssd1306_WriteString(usernames[index], Font_6x8, White);
+    // Decrypt the password in ECB mode
+    for (size_t i = 0; i < encrypted_length; i += 16) {
+        AES_ECB_decrypt(&ctx, decrypted_password + i);
     }
 
-    // --- Display Password ---
-    ssd1306_SetCursor(x_position, 32);  // Leave an empty line before the password
-    if (strlen(passwords[index]) > max_chars_per_line) {
-        // Split the password into two lines if it's too long
-        char first_part[max_chars_per_line + 1];
-        strncpy(first_part, passwords[index], max_chars_per_line);  // Copy the first part
-        first_part[max_chars_per_line] = '\0';
-        ssd1306_WriteString(first_part, Font_6x8, White);  // Write first part
+    // Remove padding (PKCS#7)
+    size_t pad_len = decrypted_password[encrypted_length - 1];
+    size_t decrypted_length = encrypted_length - pad_len;
 
-        ssd1306_SetCursor(x_position, 40);  // Move to the next line for the rest
-        ssd1306_WriteString(passwords[index] + max_chars_per_line, Font_6x8, White);
-    } else {
-        // Password fits on one line
-        ssd1306_WriteString(passwords[index], Font_6x8, White);
+    // Ensure the decrypted password is null-terminated
+    decrypted_password[decrypted_length] = '\0';
+
+    // Display the decrypted password
+    ssd1306_Fill(Black);
+
+    int max_chars_per_line = 21;  // For Font_6x8
+    int y = 0;  // Starting Y position
+
+    // Display "Username:"
+    ssd1306_SetCursor(2, y);
+    ssd1306_WriteString("Username:", Font_6x8, White);
+    y += 8;  // Move to next line
+
+    // Display the username with wrapping
+    const char* username = usernames[index];
+    int username_len = strlen(username);
+    int start = 0;
+    while (start < username_len && y < 64) {  // Ensure we don't exceed the display height
+        char line[22];  // max_chars_per_line + 1 for null terminator
+        int line_length = username_len - start;
+        if (line_length > max_chars_per_line) {
+            line_length = max_chars_per_line;
+        }
+        strncpy(line, username + start, line_length);
+        line[line_length] = '\0';
+        ssd1306_SetCursor(2, y);
+        ssd1306_WriteString(line, Font_6x8, White);
+        y += 8;  // Move to next line
+        start += line_length;
     }
 
-    ssd1306_UpdateScreen();  // Send buffer to display
+    // Leave a blank line before "Password:"
+    y += 4;
+
+    // Display "Password:"
+    if (y < 64) {
+        ssd1306_SetCursor(2, y);
+        ssd1306_WriteString("Password:", Font_6x8, White);
+        y += 8;
+    }
+
+    // Display the password with wrapping
+    char* password = (char*)decrypted_password;
+    int password_len = strlen(password);
+    start = 0;
+    while (start < password_len && y < 64) {
+        char line[22];  // max_chars_per_line + 1
+        int line_length = password_len - start;
+        if (line_length > max_chars_per_line) {
+            line_length = max_chars_per_line;
+        }
+        strncpy(line, password + start, line_length);
+        line[line_length] = '\0';
+        ssd1306_SetCursor(2, y);
+        ssd1306_WriteString(line, Font_6x8, White);
+        y += 8;  // Move to next line
+        start += line_length;
+    }
+
+    ssd1306_UpdateScreen();
 }
 
 /* Check the state of buttons and navigate the menu */
@@ -174,6 +245,7 @@ uint8_t debounce_button(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin) {
     if (HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) == GPIO_PIN_SET) {
         HAL_Delay(DEBOUNCE_DELAY);  // Wait for debounce time
         if (HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) == GPIO_PIN_SET) {
+            while (HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) == GPIO_PIN_SET);  // Wait until button is released
             return 1;  // Button is confirmed pressed
         }
     }
@@ -213,7 +285,28 @@ void handle_login_buttons() {
         display_login_screen();
     } else if (debounce_button(GPIOA, GPIO_PIN_6)) {
         // Confirm PIN
-        if (pin_input[0] == correct_pin[0] && pin_input[1] == correct_pin[1] && pin_input[2] == correct_pin[2]) {
+        uint8_t key[16];
+        derive_key_from_pin(pin_input, key);
+
+        // Attempt to decrypt the first password
+        size_t encrypted_length = encrypted_password_lengths[0];
+        uint8_t decrypted_password[64];  // Adjust size as needed
+        memcpy(decrypted_password, encrypted_passwords[0], encrypted_length);
+
+        struct AES_ctx ctx;
+        AES_init_ctx(&ctx, key);
+
+        for (size_t i = 0; i < encrypted_length; i += 16) {
+            AES_ECB_decrypt(&ctx, decrypted_password + i);
+        }
+
+        // Remove padding
+        size_t pad_len = decrypted_password[encrypted_length - 1];
+        size_t decrypted_length = encrypted_length - pad_len;
+        decrypted_password[decrypted_length] = '\0';
+
+        // Check if the decrypted password matches "password1"
+        if (strcmp((char *)decrypted_password, "password1") == 0) {
             // Correct PIN
             current_state = STATE_MENU;
             display_menu();
@@ -225,6 +318,13 @@ void handle_login_buttons() {
             pin_index = 0;
             display_login_screen();
         }
+    }
+}
+
+/* Derive AES key from 3-digit PIN */
+void derive_key_from_pin(int pin_digits[], uint8_t key[16]) {
+    for (int i = 0; i < 16; i++) {
+        key[i] = (uint8_t)(pin_digits[i % 3]);
     }
 }
 
@@ -363,3 +463,7 @@ void Error_Handler(void) {
   while (1) {
   }
 }
+
+/* USER CODE BEGIN 4 */
+
+/* USER CODE END 4 */
