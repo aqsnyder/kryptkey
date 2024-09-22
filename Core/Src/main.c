@@ -15,39 +15,34 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "ssd1306.h"      // Include your SSD1306 driver
-#include "ssd1306_fonts.h"  // Include the fonts you need
-#include "aes.h"          // Include TinyAES library
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ssd1306.h"      // Include your SSD1306 driver
+#include "ssd1306_fonts.h"  // Include the fonts you need
+#include "aes.h"          // Include TinyAES library
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+// No user typedefs
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
-#define DEBOUNCE_DELAY 20  // 20ms debounce time
-#define ENCRYPTED_PASSWORD_LENGTH 16  // Define at the top of your code  // All passwords are 16 bytes
-
-
 /* USER CODE BEGIN PD */
-
+#define DEBOUNCE_DELAY 20  // 20ms debounce time
+#define ENCRYPTED_PASSWORD_LENGTH 16  // All passwords are 16 bytes
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+// No user macros
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 
 /* USER CODE BEGIN PV */
-
 // Account data
 const char* account_names[] = {"amazon", "gmail", "spotify", "nord_vpn", "invictus_outlook", "tu_portal", "github", "wix"};
 const char* usernames[] = {
@@ -57,21 +52,21 @@ const char* usernames[] = {
     "tuf50288@temple.edu",
     "aaron@isiwireless.com",
     "tuf50288@temple.edu",
-	"aaron.q.snyder@gmail.com",
-	"aaron.snyder@temple.edu"
+    "aaron.q.snyder@gmail.com",
+    "aaron.snyder@temple.edu"
 };
 int current_selection = 0;  // Tracks the currently selected item
 
 // Encrypted passwords
 uint8_t encrypted_passwords[][16] = {
-		{0x18, 0x42, 0x40, 0x49, 0x2c, 0x71, 0xf5, 0x02, 0xf2, 0x4b, 0x17, 0x90, 0x79, 0xfa, 0xd6, 0x0b},
-		{0xf1, 0xc6, 0x0a, 0x1d, 0x56, 0x61, 0xdb, 0xf1, 0x7f, 0xc8, 0xa6, 0xb0, 0x3f, 0xdd, 0x8d, 0x76},
-		{0x78, 0x91, 0xad, 0xa7, 0x2a, 0x43, 0x71, 0xa6, 0x9b, 0x71, 0xc9, 0x60, 0x1c, 0x0b, 0xe1, 0xa3},
-		{0x34, 0xe9, 0xa3, 0x5a, 0xa2, 0xa1, 0x47, 0x34, 0x6d, 0x15, 0xee, 0x7e, 0xb5, 0xf5, 0x5d, 0xa6},
-		{0x03, 0x72, 0xeb, 0x44, 0x3d, 0x56, 0x44, 0xd2, 0x10, 0xff, 0xaa, 0xaf, 0xe8, 0x02, 0x74, 0xf0},
-		{0x0d, 0x0e, 0x6a, 0x20, 0x95, 0x6f, 0x23, 0x96, 0x08, 0xcb, 0x9e, 0x09, 0xe5, 0xb2, 0xe0, 0x94},
-		{0x1d, 0x98, 0xf2, 0x0c, 0x1e, 0x48, 0xb2, 0x51, 0xc9, 0x1f, 0xa3, 0x2c, 0xbb, 0x25, 0x40, 0x22},
-		{0x5d, 0xff, 0x06, 0xad, 0x67, 0xef, 0x4a, 0x4e, 0xc7, 0xdf, 0x27, 0x84, 0xfa, 0x8e, 0x32, 0x82}
+    {0x18, 0x42, 0x40, 0x49, 0x2c, 0x71, 0xf5, 0x02, 0xf2, 0x4b, 0x17, 0x90, 0x79, 0xfa, 0xd6, 0x0b},
+    {0xf1, 0xc6, 0x0a, 0x1d, 0x56, 0x61, 0xdb, 0xf1, 0x7f, 0xc8, 0xa6, 0xb0, 0x3f, 0xdd, 0x8d, 0x76},
+    {0x78, 0x91, 0xad, 0xa7, 0x2a, 0x43, 0x71, 0xa6, 0x9b, 0x71, 0xc9, 0x60, 0x1c, 0x0b, 0xe1, 0xa3},
+    {0x34, 0xe9, 0xa3, 0x5a, 0xa2, 0xa1, 0x47, 0x34, 0x6d, 0x15, 0xee, 0x7e, 0xb5, 0xf5, 0x5d, 0xa6},
+    {0x03, 0x72, 0xeb, 0x44, 0x3d, 0x56, 0x44, 0xd2, 0x10, 0xff, 0xaa, 0xaf, 0xe8, 0x02, 0x74, 0xf0},
+    {0x0d, 0x0e, 0x6a, 0x20, 0x95, 0x6f, 0x23, 0x96, 0x08, 0xcb, 0x9e, 0x09, 0xe5, 0xb2, 0xe0, 0x94},
+    {0x1d, 0x98, 0xf2, 0x0c, 0x1e, 0x48, 0xb2, 0x51, 0xc9, 0x1f, 0xa3, 0x2c, 0xbb, 0x25, 0x40, 0x22},
+    {0x5d, 0xff, 0x06, 0xad, 0x67, 0xef, 0x4a, 0x4e, 0xc7, 0xdf, 0x27, 0x84, 0xfa, 0x8e, 0x32, 0x82}
 };
 
 // Define screen states
@@ -86,13 +81,13 @@ ScreenState current_state = STATE_LOGIN;  // Start in the login state
 // PIN variables
 int pin_input[3] = {0, 0, 0};
 int pin_index = 0;  // Index of current digit being set
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
+/* USER CODE BEGIN PFP */
 void display_menu(void);
 void navigate_menu(int direction);
 void check_buttons(void);
@@ -101,13 +96,147 @@ uint8_t debounce_button(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
 void display_login_screen(void);
 void handle_login_buttons(void);
 void derive_key_from_pin(int pin_digits[], uint8_t key[16]);
-
-/* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+// No user code before main
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void) {
+  /* USER CODE BEGIN 1 */
+  // No user code here
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+  // No user code here
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+  // No user code here
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_I2C1_Init();
+
+  /* USER CODE BEGIN 2 */
+  ssd1306_Init();  // Initialize the OLED display
+  display_login_screen();  // Show the login screen
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1) {
+    if (current_state == STATE_LOGIN) {
+        handle_login_buttons();  // Handle login input
+    } else {
+        check_buttons();  // Poll buttons for menu navigation
+    }
+    HAL_Delay(5);   // Add delay to avoid button bouncing
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void) {
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void) {
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 400000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK) {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void) {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /* Configure GPIO pins : PA4 PA5 PA6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;  // Enable pull-down resistors to prevent floating pins
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void) {
+  __disable_irq();
+  while (1) {
+  }
+}
+
+/* USER CODE BEGIN 4 */
 
 /* Display the menu of account names with scrolling */
 void display_menu() {
@@ -359,143 +488,5 @@ void derive_key_from_pin(int pin_digits[], uint8_t key[16]) {
         key[i] = (uint8_t)(pin_digits[i % 3]);
     }
 }
-
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void) {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_I2C1_Init();
-
-  /* USER CODE BEGIN 2 */
-  ssd1306_Init();  // Initialize the OLED display
-  display_login_screen();  // Show the login screen
-
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1) {
-    if (current_state == STATE_LOGIN) {
-        handle_login_buttons();  // Handle login input
-    } else {
-        check_buttons();  // Poll buttons for menu navigation
-    }
-    HAL_Delay(5);   // Add delay to avoid button bouncing
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
-}
-
-/**
-  * @brief System Clock Configuration
-  * @retval None
-  */
-void SystemClock_Config(void) {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-    Error_Handler();
-  }
-
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
-    Error_Handler();
-  }
-}
-
-/**
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C1_Init(void) {
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 400000;
-  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK) {
-    Error_Handler();
-  }
-}
-
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void) {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  /* Configure GPIO pins : PA4 PA5 PA6 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;  // Enable pull-down resistors to prevent floating pins
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-}
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void) {
-  __disable_irq();
-  while (1) {
-  }
-}
-
-/* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */

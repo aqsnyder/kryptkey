@@ -3014,47 +3014,47 @@ LOAD C:/ST/STM32CubeIDE_1.16.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.ext
  .text.AES_ECB_decrypt
                 0x08000ba8       0x1c ./Core/Src/aes.o
                 0x08000ba8                AES_ECB_decrypt
- .text.display_menu
-                0x08000bc4       0xe0 ./Core/Src/main.o
-                0x08000bc4                display_menu
- .text.navigate_menu
-                0x08000ca4       0x4c ./Core/Src/main.o
-                0x08000ca4                navigate_menu
- .text.handle_enter_button
-                0x08000cf0       0x3c ./Core/Src/main.o
-                0x08000cf0                handle_enter_button
- .text.show_account_details
-                0x08000d2c      0x2c0 ./Core/Src/main.o
-                0x08000d2c                show_account_details
- .text.check_buttons
-                0x08000fec       0x60 ./Core/Src/main.o
-                0x08000fec                check_buttons
- .text.debounce_button
-                0x0800104c       0x52 ./Core/Src/main.o
-                0x0800104c                debounce_button
- *fill*         0x0800109e        0x2 
- .text.display_login_screen
-                0x080010a0       0xa0 ./Core/Src/main.o
-                0x080010a0                display_login_screen
- .text.handle_login_buttons
-                0x08001140      0x17c ./Core/Src/main.o
-                0x08001140                handle_login_buttons
- .text.derive_key_from_pin
-                0x080012bc       0x54 ./Core/Src/main.o
-                0x080012bc                derive_key_from_pin
- .text.main     0x08001310       0x3c ./Core/Src/main.o
-                0x08001310                main
+ .text.main     0x08000bc4       0x3c ./Core/Src/main.o
+                0x08000bc4                main
  .text.SystemClock_Config
-                0x0800134c       0x76 ./Core/Src/main.o
-                0x0800134c                SystemClock_Config
- *fill*         0x080013c2        0x2 
+                0x08000c00       0x76 ./Core/Src/main.o
+                0x08000c00                SystemClock_Config
+ *fill*         0x08000c76        0x2 
  .text.MX_I2C1_Init
-                0x080013c4       0x5c ./Core/Src/main.o
+                0x08000c78       0x5c ./Core/Src/main.o
  .text.MX_GPIO_Init
-                0x08001420       0x84 ./Core/Src/main.o
+                0x08000cd4       0x84 ./Core/Src/main.o
  .text.Error_Handler
-                0x080014a4        0xc ./Core/Src/main.o
-                0x080014a4                Error_Handler
+                0x08000d58        0xc ./Core/Src/main.o
+                0x08000d58                Error_Handler
+ .text.display_menu
+                0x08000d64       0xe0 ./Core/Src/main.o
+                0x08000d64                display_menu
+ .text.navigate_menu
+                0x08000e44       0x4c ./Core/Src/main.o
+                0x08000e44                navigate_menu
+ .text.handle_enter_button
+                0x08000e90       0x3c ./Core/Src/main.o
+                0x08000e90                handle_enter_button
+ .text.show_account_details
+                0x08000ecc      0x2c0 ./Core/Src/main.o
+                0x08000ecc                show_account_details
+ .text.check_buttons
+                0x0800118c       0x60 ./Core/Src/main.o
+                0x0800118c                check_buttons
+ .text.debounce_button
+                0x080011ec       0x52 ./Core/Src/main.o
+                0x080011ec                debounce_button
+ *fill*         0x0800123e        0x2 
+ .text.display_login_screen
+                0x08001240       0xa0 ./Core/Src/main.o
+                0x08001240                display_login_screen
+ .text.handle_login_buttons
+                0x080012e0      0x17c ./Core/Src/main.o
+                0x080012e0                handle_login_buttons
+ .text.derive_key_from_pin
+                0x0800145c       0x54 ./Core/Src/main.o
+                0x0800145c                derive_key_from_pin
  .text.ssd1306_Reset
                 0x080014b0        0xc ./Core/Src/ssd1306.o
                 0x080014b0                ssd1306_Reset
@@ -3620,37 +3620,37 @@ LOAD C:/ST/STM32CubeIDE_1.16.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.ext
 LOAD C:/ST/STM32CubeIDE_1.16.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623/tools/bin/../lib/gcc/arm-none-eabi/12.3.1/../../../../arm-none-eabi/lib/thumb/v7-m/nofp\libm.a
 LOAD C:/ST/STM32CubeIDE_1.16.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623/tools/bin/../lib/gcc/arm-none-eabi/12.3.1/thumb/v7-m/nofp\libgcc.a
 
-.debug_info     0x00000000     0x7e1a
+.debug_info     0x00000000     0x7e2c
  .debug_info    0x00000000      0x750 ./Core/Src/aes.o
- .debug_info    0x00000750     0x10ba ./Core/Src/main.o
- .debug_info    0x0000180a     0x122b ./Core/Src/ssd1306.o
- .debug_info    0x00002a35      0x2a4 ./Core/Src/ssd1306_fonts.o
- .debug_info    0x00002cd9      0x845 ./Core/Src/stm32f1xx_hal_msp.o
- .debug_info    0x0000351e      0x113 ./Core/Src/stm32f1xx_it.o
- .debug_info    0x00003631      0x168 ./Core/Src/sysmem.o
- .debug_info    0x00003799      0x222 ./Core/Src/system_stm32f1xx.o
- .debug_info    0x000039bb       0x30 ./Core/Startup/startup_stm32f103c8tx.o
- .debug_info    0x000039eb      0x704 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
- .debug_info    0x000040ef      0xa87 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o
- .debug_info    0x00004b76      0x5ab ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.o
- .debug_info    0x00005121     0x2524 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.o
- .debug_info    0x00007645      0x7d5 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
+ .debug_info    0x00000750     0x10cc ./Core/Src/main.o
+ .debug_info    0x0000181c     0x122b ./Core/Src/ssd1306.o
+ .debug_info    0x00002a47      0x2a4 ./Core/Src/ssd1306_fonts.o
+ .debug_info    0x00002ceb      0x845 ./Core/Src/stm32f1xx_hal_msp.o
+ .debug_info    0x00003530      0x113 ./Core/Src/stm32f1xx_it.o
+ .debug_info    0x00003643      0x168 ./Core/Src/sysmem.o
+ .debug_info    0x000037ab      0x222 ./Core/Src/system_stm32f1xx.o
+ .debug_info    0x000039cd       0x30 ./Core/Startup/startup_stm32f103c8tx.o
+ .debug_info    0x000039fd      0x704 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
+ .debug_info    0x00004101      0xa87 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o
+ .debug_info    0x00004b88      0x5ab ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.o
+ .debug_info    0x00005133     0x2524 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.o
+ .debug_info    0x00007657      0x7d5 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
 
-.debug_abbrev   0x00000000     0x1a5d
+.debug_abbrev   0x00000000     0x1a52
  .debug_abbrev  0x00000000      0x202 ./Core/Src/aes.o
- .debug_abbrev  0x00000202      0x3cd ./Core/Src/main.o
- .debug_abbrev  0x000005cf      0x371 ./Core/Src/ssd1306.o
- .debug_abbrev  0x00000940       0xcf ./Core/Src/ssd1306_fonts.o
- .debug_abbrev  0x00000a0f      0x1a3 ./Core/Src/stm32f1xx_hal_msp.o
- .debug_abbrev  0x00000bb2       0x73 ./Core/Src/stm32f1xx_it.o
- .debug_abbrev  0x00000c25       0xbc ./Core/Src/sysmem.o
- .debug_abbrev  0x00000ce1      0x13f ./Core/Src/system_stm32f1xx.o
- .debug_abbrev  0x00000e20       0x24 ./Core/Startup/startup_stm32f103c8tx.o
- .debug_abbrev  0x00000e44      0x201 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
- .debug_abbrev  0x00001045      0x2f8 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o
- .debug_abbrev  0x0000133d      0x1ca ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.o
- .debug_abbrev  0x00001507      0x2a3 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.o
- .debug_abbrev  0x000017aa      0x2b3 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
+ .debug_abbrev  0x00000202      0x3c2 ./Core/Src/main.o
+ .debug_abbrev  0x000005c4      0x371 ./Core/Src/ssd1306.o
+ .debug_abbrev  0x00000935       0xcf ./Core/Src/ssd1306_fonts.o
+ .debug_abbrev  0x00000a04      0x1a3 ./Core/Src/stm32f1xx_hal_msp.o
+ .debug_abbrev  0x00000ba7       0x73 ./Core/Src/stm32f1xx_it.o
+ .debug_abbrev  0x00000c1a       0xbc ./Core/Src/sysmem.o
+ .debug_abbrev  0x00000cd6      0x13f ./Core/Src/system_stm32f1xx.o
+ .debug_abbrev  0x00000e15       0x24 ./Core/Startup/startup_stm32f103c8tx.o
+ .debug_abbrev  0x00000e39      0x201 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o
+ .debug_abbrev  0x0000103a      0x2f8 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.o
+ .debug_abbrev  0x00001332      0x1ca ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.o
+ .debug_abbrev  0x000014fc      0x2a3 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.o
+ .debug_abbrev  0x0000179f      0x2b3 ./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.o
 
 .debug_aranges  0x00000000      0x8b0
  .debug_aranges
