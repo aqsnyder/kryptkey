@@ -12,6 +12,7 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
+
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
@@ -90,6 +91,7 @@ static void MX_I2C1_Init(void);
 void display_menu(void);
 void navigate_menu(int direction);
 void check_buttons(void);
+void handle_enter_button(void);
 void show_account_details(int index);
 uint8_t debounce_button(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
 void display_login_screen(void);
@@ -106,9 +108,7 @@ void derive_key_from_pin(int pin_digits[], uint8_t key[16]);
   * @brief  The application entry point.
   * @retval int
   */
-int main(void)
-{
-
+int main(void) {
   /* USER CODE BEGIN 1 */
   // No user code here
   /* USER CODE END 1 */
@@ -132,6 +132,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
+
   /* USER CODE BEGIN 2 */
   ssd1306_Init();  // Initialize the OLED display
   display_login_screen();  // Show the login screen
@@ -157,23 +158,18 @@ int main(void)
   * @brief System Clock Configuration
   * @retval None
   */
-void SystemClock_Config(void)
-{
+void SystemClock_Config(void) {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV2;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     Error_Handler();
   }
 
@@ -181,13 +177,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
     Error_Handler();
   }
 }
@@ -197,16 +192,10 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_I2C1_Init(void)
-{
+static void MX_I2C1_Init(void) {
+  /* USER CODE BEGIN MX_I2C1_Init_0 */
+  /* USER CODE END MX_I2C1_Init_0 */
 
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.ClockSpeed = 400000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
@@ -216,14 +205,12 @@ static void MX_I2C1_Init(void)
   hi2c1.Init.OwnAddress2 = 0;
   hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
   hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-  {
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK) {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C1_Init 2 */
 
-  /* USER CODE END I2C1_Init 2 */
-
+  /* USER CODE BEGIN MX_I2C1_Init_1 */
+  /* USER CODE END MX_I2C1_Init_1 */
 }
 
 /**
@@ -231,25 +218,33 @@ static void MX_I2C1_Init(void)
   * @param None
   * @retval None
   */
-static void MX_GPIO_Init(void)
-{
+static void MX_GPIO_Init(void) {
+  /* USER CODE BEGIN MX_GPIO_Init_0 */
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_0 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /*Configure GPIO pins : PA4 PA5 PA6 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* Configure GPIO pins : PA4 PA5 PA6 */
   GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;  // Enable pull-down resistors to prevent floating pins
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  /* USER CODE END MX_GPIO_Init_1 */
+}
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void) {
+  __disable_irq();
+  while (1) {
+  }
 }
 
 /* USER CODE BEGIN 4 */
@@ -404,7 +399,7 @@ void show_account_details(int index) {
 
 /* Check the state of buttons and navigate the menu */
 void check_buttons() {
-    if (debounce_button(GPIOA, GPIO_PIN_4)) {
+    if (debounce_button(GPIOA, GPIO_PIN_6)) {
         if (current_state == STATE_MENU) {
             navigate_menu(1);  // Move up in the list
         }
@@ -412,7 +407,7 @@ void check_buttons() {
         if (current_state == STATE_MENU) {
             navigate_menu(-1);   // Move down in the list
         }
-    } else if (debounce_button(GPIOA, GPIO_PIN_6)) {
+    } else if (debounce_button(GPIOA, GPIO_PIN_4)) {
         handle_enter_button();  // Toggle between the menu and account details
     }
 }
@@ -452,7 +447,7 @@ void display_login_screen() {
 
 /* Handle button inputs on the login screen */
 void handle_login_buttons() {
-    if (debounce_button(GPIOA, GPIO_PIN_4)) {
+    if (debounce_button(GPIOA, GPIO_PIN_6)) {
         // Increase current digit
         pin_input[pin_index] = (pin_input[pin_index] + 1) % 10;  // Digits 0-9
         display_login_screen();
@@ -460,7 +455,7 @@ void handle_login_buttons() {
         // Move to next digit
         pin_index = (pin_index + 1) % 3;  // Wrap around 0-2
         display_login_screen();
-    } else if (debounce_button(GPIOA, GPIO_PIN_6)) {
+    } else if (debounce_button(GPIOA, GPIO_PIN_4)) {
         // Confirm PIN
         uint8_t key[16];
         derive_key_from_pin(pin_input, key);
@@ -506,35 +501,3 @@ void derive_key_from_pin(int pin_digits[], uint8_t key[16]) {
 }
 
 /* USER CODE END 4 */
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
-  /* USER CODE END Error_Handler_Debug */
-}
-
-#ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t *file, uint32_t line)
-{
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
-}
-#endif /* USE_FULL_ASSERT */
