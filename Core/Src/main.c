@@ -18,9 +18,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ssd1306.h"      // Include your SSD1306 driver
+#include "ssd1306.h"        // Include your SSD1306 driver
 #include "ssd1306_fonts.h"  // Include the fonts you need
-#include "aes.h"          // Include TinyAES library
+#include "aes.h"            // Include TinyAES library
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -30,7 +30,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define DEBOUNCE_DELAY 20  // 20ms debounce time
+#define DEBOUNCE_DELAY 20             // 20ms debounce time
 #define ENCRYPTED_PASSWORD_LENGTH 16  // All passwords are 16 bytes
 /* USER CODE END PD */
 
@@ -44,17 +44,70 @@ I2C_HandleTypeDef hi2c1;
 
 /* USER CODE BEGIN PV */
 // Account data
-const char* account_names[] = {"amazon", "gmail", "spotify", "nord_vpn", "invictus_outlook", "tu_portal", "github", "wix"};
+const char* account_names[] = {
+    "amazon",
+    "bank_amex",
+    "bank_chase",
+    "bank_discover",
+    "bank_pnc",
+    "card_amazon",
+    "card_discover",
+    "card_gold",
+    "card_pnc_credit",
+    "card_pnc_debit",
+    "coinbase",
+    "digikey",
+    "discord",
+    "github",
+    "gmail",
+    "go_daddy",
+    "invictus_3dexp",
+    "invictus_outlook",
+    "invictus_quikbooks",
+    "mouser",
+    "nationwide_energy",
+    "nord",
+    "spotify",
+    "state_farm",
+    "turbo_tax",
+    "tu_portal",
+    "twitter",
+    "ups",
+    "wix"
+};
+
 const char* usernames[] = {
     "tuf50288@temple.edu",
+    "bank_american",
+    "bank_chase",
+    "snyderdiscover9",
+    "snyderonlinepnc",
+    "null",
+    "null",
+    "null",
+    "null",
+    "null",
+    "tuf50288@temple.edu",
+    "aaron@isiwireless.com",
+    "aaron.q.snyder@gmail.com",
+    "aaron.q.snyder@gmail.com",
+    "aaron.q.snyder@gmail.com",
+    "aaron@isiwireless.com",
+    "aaron@isiwireless.com",
+    "aaron@isiwireless.com",
+    "aaron@isiwireless.com",
+    "aaron@isiwireless.com",
     "aaron.q.snyder@gmail.com",
     "aaron.snyder@temple.edu",
     "tuf50288@temple.edu",
-    "aaron@isiwireless.com",
-    "tuf50288@temple.edu",
+    "SnyderFarm9",
     "aaron.q.snyder@gmail.com",
+    "tuf50288@temple.edu",
+    "aaron3151489061",
+    "snyder_ups",
     "aaron.snyder@temple.edu"
 };
+
 int current_selection = 0;  // Tracks the currently selected item
 
 // Encrypted passwords
@@ -193,9 +246,6 @@ void SystemClock_Config(void) {
   * @retval None
   */
 static void MX_I2C1_Init(void) {
-  /* USER CODE BEGIN MX_I2C1_Init_0 */
-  /* USER CODE END MX_I2C1_Init_0 */
-
   hi2c1.Instance = I2C1;
   hi2c1.Init.ClockSpeed = 400000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
@@ -208,9 +258,6 @@ static void MX_I2C1_Init(void) {
   if (HAL_I2C_Init(&hi2c1) != HAL_OK) {
     Error_Handler();
   }
-
-  /* USER CODE BEGIN MX_I2C1_Init_1 */
-  /* USER CODE END MX_I2C1_Init_1 */
 }
 
 /**
@@ -219,22 +266,18 @@ static void MX_I2C1_Init(void) {
   * @retval None
   */
 static void MX_GPIO_Init(void) {
-  /* USER CODE BEGIN MX_GPIO_Init_0 */
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /* USER CODE END MX_GPIO_Init_0 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
   /* Configure GPIO pins : PA4 PA5 PA6 */
   GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;  // Enable pull-down resistors to prevent floating pins
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-  /* USER CODE END MX_GPIO_Init_1 */
 }
 
 /**
@@ -255,28 +298,28 @@ void display_menu() {
 
     int menu_size = sizeof(account_names) / sizeof(account_names[0]);
     int window_size = 4;  // Number of items that can fit on the screen
-    int half_window = window_size / 2;
     int start_index;
 
-    // Adjust start_index based on current_selection to ensure it is always visible
     if (menu_size <= window_size) {
         // All items fit on the screen
         start_index = 0;
         window_size = menu_size;  // Adjust window_size if fewer items
-    } else if (current_selection <= half_window) {
-        // Near the top of the list
-        start_index = 0;
-    } else if (current_selection >= menu_size - half_window - 1) {
-        // Near the bottom of the list
-        start_index = menu_size - window_size;
     } else {
-        // Middle of the list
-        start_index = current_selection - half_window;
+        // Ensure the current_selection is centered in the window when possible
+        start_index = current_selection - window_size / 2;
+
+        // Adjust start_index to stay within valid bounds
+        if (start_index < 0) {
+            start_index = 0;
+        } else if (start_index > menu_size - window_size) {
+            start_index = menu_size - window_size;
+        }
     }
 
     // Display the menu items within the window
     for (int i = 0; i < window_size; i++) {
         int item_index = start_index + i;
+
         ssd1306_SetCursor(2, i * 16);  // Set Y position for each line
 
         if (item_index == current_selection) {
@@ -285,6 +328,7 @@ void display_menu() {
             ssd1306_WriteString(account_names[item_index], Font_7x10, White);
         }
     }
+
     ssd1306_UpdateScreen();  // Send buffer to display
 }
 
@@ -319,7 +363,7 @@ void show_account_details(int index) {
     derive_key_from_pin(pin_input, key);
 
     size_t encrypted_length = ENCRYPTED_PASSWORD_LENGTH;
-    uint8_t decrypted_password[128];
+    uint8_t decrypted_password[64];
     memcpy(decrypted_password, encrypted_passwords[index], encrypted_length);
 
     struct AES_ctx ctx;
@@ -399,13 +443,13 @@ void show_account_details(int index) {
 
 /* Check the state of buttons and navigate the menu */
 void check_buttons() {
-    if (debounce_button(GPIOA, GPIO_PIN_6)) {
+    if (debounce_button(GPIOA, GPIO_PIN_6)) {  // First button
         if (current_state == STATE_MENU) {
-            navigate_menu(1);  // Move up in the list
+            navigate_menu(-1);  // Move up in the list
         }
-    } else if (debounce_button(GPIOA, GPIO_PIN_5)) {
+    } else if (debounce_button(GPIOA, GPIO_PIN_5)) {  // Second button
         if (current_state == STATE_MENU) {
-            navigate_menu(-1);   // Move down in the list
+            navigate_menu(1);   // Move down in the list
         }
     } else if (debounce_button(GPIOA, GPIO_PIN_4)) {
         handle_enter_button();  // Toggle between the menu and account details
